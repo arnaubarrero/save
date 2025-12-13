@@ -1,21 +1,4 @@
-# Gestor de Patrimonio — save
-
-Aplicación Flutter simple para llevar el control de patrimonio personal y activos. Permite añadir, listar y eliminar activos, distinguir entre activos líquidos y no líquidos, y ver totales preformateados.
-
-Características principales
-- Añadir activos con nombre, monto y tipo (Líquido / Activo).
-- Listado de activos con interfaz tipo tarjeta (glassmorphism).
-- Cálculo de totales (Total, Líquido, Activos).
-- Eliminación con gesto (swipe) y opción de deshacer.
-- Persistencia local con `shared_preferences`.
-- Optimización de rendimiento: guardados debounced, RepaintBoundary, reducción del blur en lista.
-
-Capturas
-- Pantalla principal con el total y la lista de activos.
-- Diálogo para añadir un activo.
-Instalación y ejecución
-1. Clonar el repositorio y abrir la carpeta del proyecto.
-2. Obtener dependencias:
+# Save — Personal Asset Manager
 # Save — Personal Asset Manager
 
 Simple Flutter app to manage personal assets. You can add, list, and remove assets, mark them as liquid or non-liquid, and view preformatted totals.

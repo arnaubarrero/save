@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'dart:ui';
+import 'dart:ui' as ui;
 import 'dart:async';
 import 'package:intl/intl.dart';
+import 'package:intl/intl_standalone.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter/foundation.dart' show SynchronousFuture;
 
 class AssetEntry {
   final String name;
@@ -33,10 +36,181 @@ class AssetEntry {
   );
 }
 
-final NumberFormat moneyFormat = NumberFormat('#,##0.00', 'es_ES');
+// Clase para manejar las traducciones
+class AppLocalizations {
+  final Locale locale;
 
-void main() {
-  runApp(const MyApp());
+  AppLocalizations(this.locale);
+
+  static AppLocalizations? of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations);
+  }
+
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
+
+  static final Map<String, Map<String, String>> _localizedValues = {
+    'es': {
+      'appTitle': 'Mi Patrimonio',
+      'totalAssets': 'PATRIMONIO TOTAL',
+      'liquid': 'Líquido',
+      'assets': 'Activos',
+      'myAssets': 'Mis Activos',
+      'noAssets': 'No hay activos',
+      'addPrompt': 'Presiona el botón + para añadir',
+      'addAsset': 'Añadir Activo',
+      'assetName': 'Nombre del activo',
+      'assetNameHint': 'ej. Cuenta bancaria, Bitcoin...',
+      'amount': 'Monto',
+      'amountHint': '0,00',
+      'assetType': 'Tipo de activo',
+      'liquidType': 'Líquido',
+      'assetTypeLabel': 'Activo',
+      'cancel': 'Cancelar',
+      'save': 'Guardar',
+      'items': 'items',
+      'item': 'item',
+      'addedSuccessfully': 'añadido correctamente',
+      'enterValidData': 'Ingresa un nombre y monto válidos',
+      'removed': 'eliminado',
+      'undo': 'Deshacer',
+      'hideDetails': 'Ocultar detalles',
+      'showDetails': 'Mostrar detalles',
+      'add': 'Añadir',
+    },
+    'en': {
+      'appTitle': 'My Assets',
+      'totalAssets': 'TOTAL ASSETS',
+      'liquid': 'Liquid',
+      'assets': 'Assets',
+      'myAssets': 'My Assets',
+      'noAssets': 'No assets',
+      'addPrompt': 'Press the + button to add',
+      'addAsset': 'Add Asset',
+      'assetName': 'Asset name',
+      'assetNameHint': 'e.g. Bank account, Bitcoin...',
+      'amount': 'Amount',
+      'amountHint': '0.00',
+      'assetType': 'Asset type',
+      'liquidType': 'Liquid',
+      'assetTypeLabel': 'Asset',
+      'cancel': 'Cancel',
+      'save': 'Save',
+      'items': 'items',
+      'item': 'item',
+      'addedSuccessfully': 'added successfully',
+      'enterValidData': 'Enter valid name and amount',
+      'removed': 'removed',
+      'undo': 'Undo',
+      'hideDetails': 'Hide details',
+      'showDetails': 'Show details',
+      'add': 'Add',
+    },
+    'fr': {
+      'appTitle': 'Mon Patrimoine',
+      'totalAssets': 'PATRIMOINE TOTAL',
+      'liquid': 'Liquide',
+      'assets': 'Actifs',
+      'myAssets': 'Mes Actifs',
+      'noAssets': 'Aucun actif',
+      'addPrompt': 'Appuyez sur le bouton + pour ajouter',
+      'addAsset': 'Ajouter un Actif',
+      'assetName': 'Nom de l\'actif',
+      'assetNameHint': 'ex. Compte bancaire, Bitcoin...',
+      'amount': 'Montant',
+      'amountHint': '0,00',
+      'assetType': 'Type d\'actif',
+      'liquidType': 'Liquide',
+      'assetTypeLabel': 'Actif',
+      'cancel': 'Annuler',
+      'save': 'Sauvegarder',
+      'items': 'éléments',
+      'item': 'élément',
+      'addedSuccessfully': 'ajouté avec succès',
+      'enterValidData': 'Entrez un nom et un montant valides',
+      'removed': 'supprimé',
+      'undo': 'Annuler',
+      'hideDetails': 'Masquer les détails',
+      'showDetails': 'Afficher les détails',
+      'add': 'Ajouter',
+    },
+  };
+
+  String? get appTitle => _localizedValues[locale.languageCode]?['appTitle'];
+  String? get totalAssets =>
+      _localizedValues[locale.languageCode]?['totalAssets'];
+  String? get liquid => _localizedValues[locale.languageCode]?['liquid'];
+  String? get assets => _localizedValues[locale.languageCode]?['assets'];
+  String? get myAssets => _localizedValues[locale.languageCode]?['myAssets'];
+  String? get noAssets => _localizedValues[locale.languageCode]?['noAssets'];
+  String? get addPrompt => _localizedValues[locale.languageCode]?['addPrompt'];
+  String? get addAsset => _localizedValues[locale.languageCode]?['addAsset'];
+  String? get assetName => _localizedValues[locale.languageCode]?['assetName'];
+  String? get assetNameHint =>
+      _localizedValues[locale.languageCode]?['assetNameHint'];
+  String? get amount => _localizedValues[locale.languageCode]?['amount'];
+  String? get amountHint =>
+      _localizedValues[locale.languageCode]?['amountHint'];
+  String? get assetType => _localizedValues[locale.languageCode]?['assetType'];
+  String? get liquidType =>
+      _localizedValues[locale.languageCode]?['liquidType'];
+  String? get assetTypeLabel =>
+      _localizedValues[locale.languageCode]?['assetTypeLabel'];
+  String? get cancel => _localizedValues[locale.languageCode]?['cancel'];
+  String? get save => _localizedValues[locale.languageCode]?['save'];
+  String? get items => _localizedValues[locale.languageCode]?['items'];
+  String? get item => _localizedValues[locale.languageCode]?['item'];
+  String? get addedSuccessfully =>
+      _localizedValues[locale.languageCode]?['addedSuccessfully'];
+  String? get enterValidData =>
+      _localizedValues[locale.languageCode]?['enterValidData'];
+  String? get removed => _localizedValues[locale.languageCode]?['removed'];
+  String? get undo => _localizedValues[locale.languageCode]?['undo'];
+  String? get hideDetails =>
+      _localizedValues[locale.languageCode]?['hideDetails'];
+  String? get showDetails =>
+      _localizedValues[locale.languageCode]?['showDetails'];
+  String? get add => _localizedValues[locale.languageCode]?['add'];
+}
+
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
+  const _AppLocalizationsDelegate();
+
+  @override
+  bool isSupported(Locale locale) {
+    return ['es', 'en', 'fr'].contains(locale.languageCode);
+  }
+
+  @override
+  Future<AppLocalizations> load(Locale locale) {
+    return SynchronousFuture<AppLocalizations>(AppLocalizations(locale));
+  }
+
+  @override
+  bool shouldReload(_AppLocalizationsDelegate old) => false;
+}
+
+// Clase para manejar el cambio de idioma
+class LanguageManager {
+  static const String _languageKey = 'selected_language';
+
+  static Future<void> setLocale(String languageCode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_languageKey, languageCode);
+  }
+
+  static Future<Locale> getLocale() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? languageCode = prefs.getString(_languageKey);
+
+    if (languageCode != null && ['es', 'en', 'fr'].contains(languageCode)) {
+      return Locale(languageCode);
+    }
+
+    // Por defecto español
+    return const Locale('es');
+  }
 }
 
 class GlassmorphicCard extends StatelessWidget {
@@ -76,7 +250,7 @@ class GlassmorphicCard extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+            filter: ui.ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
             child: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -182,8 +356,35 @@ final ThemeData darkTheme = ThemeData(
   useMaterial3: true,
 );
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  Locale? _locale;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLocale();
+  }
+
+  Future<void> _loadLocale() async {
+    final locale = await LanguageManager.getLocale();
+    setState(() {
+      _locale = locale;
+    });
+  }
+
+  void _changeLanguage(String languageCode) async {
+    await LanguageManager.setLocale(languageCode);
+    setState(() {
+      _locale = Locale(languageCode);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -193,13 +394,29 @@ class MyApp extends StatelessWidget {
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: ThemeMode.system,
-      home: const AssetManagerPage(),
+      locale: _locale,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('es', 'ES'),
+        Locale('en', 'US'),
+        Locale('fr', 'CH'),
+      ],
+      home: _locale == null
+          ? const Center(child: CircularProgressIndicator())
+          : AssetManagerPage(onLanguageChanged: _changeLanguage),
     );
   }
 }
 
 class AssetManagerPage extends StatefulWidget {
-  const AssetManagerPage({super.key});
+  final Function(String) onLanguageChanged;
+
+  const AssetManagerPage({super.key, required this.onLanguageChanged});
 
   @override
   State<AssetManagerPage> createState() => _AssetManagerPageState();
@@ -221,10 +438,38 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
   bool _isLiquid = true;
   Timer? _saveTimer;
 
+  NumberFormat? _moneyFormat;
+  String? _currencySymbol;
+
   @override
   void initState() {
     super.initState();
     _loadAssets();
+  }
+
+  void _initializeNumberFormat() {
+    final locale = AppLocalizations.of(context)?.locale.languageCode ?? 'es';
+
+    switch (locale) {
+      case 'en':
+        _moneyFormat = NumberFormat('#,##0.00', 'en_US');
+        _currencySymbol = '€';
+        break;
+      case 'fr':
+        _moneyFormat = NumberFormat('#,##0.00', 'fr_CH');
+        _currencySymbol = 'CHF';
+        break;
+      default: // 'es'
+        _moneyFormat = NumberFormat('#,##0.00', 'es_ES');
+        _currencySymbol = '€';
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _initializeNumberFormat();
+    _calculateTotals(); // Recalcular con el formato correcto
   }
 
   @override
@@ -232,7 +477,6 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
     _nameController.dispose();
     _amountController.dispose();
     _saveTimer?.cancel();
-    // Flush any pending saves
     _performSave();
     super.dispose();
   }
@@ -279,10 +523,13 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
         _assetAmount += asset.amount;
       }
     }
-    // Precompute formatted strings to avoid repeated formatting during build
-    _totalAmountStr = '€${moneyFormat.format(_totalAmount)}';
-    _liquidAmountStr = '€${moneyFormat.format(_liquidAmount)}';
-    _assetAmountStr = '€${moneyFormat.format(_assetAmount)}';
+
+    if (_moneyFormat != null) {
+      _totalAmountStr = '$_currencySymbol${_moneyFormat!.format(_totalAmount)}';
+      _liquidAmountStr =
+          '$_currencySymbol${_moneyFormat!.format(_liquidAmount)}';
+      _assetAmountStr = '$_currencySymbol${_moneyFormat!.format(_assetAmount)}';
+    }
   }
 
   void _addAsset() {
@@ -302,25 +549,30 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
             dateAdded: DateTime.now(),
           ),
         );
-        // Update totals incrementally instead of recalculating whole list
         _totalAmount += amount;
         if (_isLiquid) {
           _liquidAmount += amount;
         } else {
           _assetAmount += amount;
         }
-        _totalAmountStr = '€${moneyFormat.format(_totalAmount)}';
-        _liquidAmountStr = '€${moneyFormat.format(_liquidAmount)}';
-        _assetAmountStr = '€${moneyFormat.format(_assetAmount)}';
+        if (_moneyFormat != null) {
+          _totalAmountStr =
+              '$_currencySymbol${_moneyFormat!.format(_totalAmount)}';
+          _liquidAmountStr =
+              '$_currencySymbol${_moneyFormat!.format(_liquidAmount)}';
+          _assetAmountStr =
+              '$_currencySymbol${_moneyFormat!.format(_assetAmount)}';
+        }
       });
       _scheduleSave();
       _nameController.clear();
       _amountController.clear();
       Navigator.of(context).pop();
 
+      final l10n = AppLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('$name añadido correctamente'),
+          content: Text('$name ${l10n!.addedSuccessfully!}'),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -328,9 +580,10 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
         ),
       );
     } else {
+      final l10n = AppLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Ingresa un nombre y monto válidos'),
+        SnackBar(
+          content: Text(l10n!.enterValidData!),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -339,40 +592,50 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
 
   void _removeAsset(int index) {
     final asset = _assets[index];
+    final l10n = AppLocalizations.of(context);
+
     setState(() {
       _assets.removeAt(index);
-      // Adjust totals incrementally
       _totalAmount -= asset.amount;
       if (asset.isLiquid) {
         _liquidAmount -= asset.amount;
       } else {
         _assetAmount -= asset.amount;
       }
-      _totalAmountStr = '€${moneyFormat.format(_totalAmount)}';
-      _liquidAmountStr = '€${moneyFormat.format(_liquidAmount)}';
-      _assetAmountStr = '€${moneyFormat.format(_assetAmount)}';
+      if (_moneyFormat != null) {
+        _totalAmountStr =
+            '$_currencySymbol${_moneyFormat!.format(_totalAmount)}';
+        _liquidAmountStr =
+            '$_currencySymbol${_moneyFormat!.format(_liquidAmount)}';
+        _assetAmountStr =
+            '$_currencySymbol${_moneyFormat!.format(_assetAmount)}';
+      }
     });
     _scheduleSave();
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${asset.name} eliminado'),
+        content: Text('${asset.name} ${l10n!.removed!}'),
         behavior: SnackBarBehavior.floating,
         action: SnackBarAction(
-          label: 'Deshacer',
+          label: l10n.undo!,
           onPressed: () {
             setState(() {
               _assets.insert(index, asset);
-              // Reapply totals incrementally
               _totalAmount += asset.amount;
               if (asset.isLiquid) {
                 _liquidAmount += asset.amount;
               } else {
                 _assetAmount += asset.amount;
               }
-              _totalAmountStr = '€${moneyFormat.format(_totalAmount)}';
-              _liquidAmountStr = '€${moneyFormat.format(_liquidAmount)}';
-              _assetAmountStr = '€${moneyFormat.format(_assetAmount)}';
+              if (_moneyFormat != null) {
+                _totalAmountStr =
+                    '$_currencySymbol${_moneyFormat!.format(_totalAmount)}';
+                _liquidAmountStr =
+                    '$_currencySymbol${_moneyFormat!.format(_liquidAmount)}';
+                _assetAmountStr =
+                    '$_currencySymbol${_moneyFormat!.format(_assetAmount)}';
+              }
               _scheduleSave();
             });
           },
@@ -382,6 +645,8 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
   }
 
   void _showAddAssetDialog() {
+    final l10n = AppLocalizations.of(context);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -422,7 +687,7 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
                     const SizedBox(height: 24),
 
                     Text(
-                      'Añadir Activo',
+                      l10n!.addAsset!,
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -431,10 +696,10 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
 
                     TextField(
                       controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nombre del activo',
-                        hintText: 'ej. Cuenta bancaria, Bitcoin...',
-                        prefixIcon: Icon(Icons.label_outline),
+                      decoration: InputDecoration(
+                        labelText: l10n.assetName,
+                        hintText: l10n.assetNameHint,
+                        prefixIcon: const Icon(Icons.label_outline),
                       ),
                       textCapitalization: TextCapitalization.words,
                     ),
@@ -442,10 +707,10 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
 
                     TextField(
                       controller: _amountController,
-                      decoration: const InputDecoration(
-                        labelText: 'Monto',
-                        hintText: '0,00',
-                        prefixIcon: Icon(Icons.euro),
+                      decoration: InputDecoration(
+                        labelText: l10n.amount,
+                        hintText: l10n.amountHint,
+                        prefixIcon: const Icon(Icons.euro),
                       ),
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
@@ -454,7 +719,7 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
                     const SizedBox(height: 24),
 
                     Text(
-                      'Tipo de activo',
+                      l10n.assetType!,
                       style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -464,7 +729,7 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
                       children: [
                         Expanded(
                           child: _TypeChip(
-                            label: 'Líquido',
+                            label: l10n.liquidType!,
                             icon: Icons.water_drop,
                             selected: _isLiquid,
                             onTap: () {
@@ -477,7 +742,7 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: _TypeChip(
-                            label: 'Activo',
+                            label: l10n.assetTypeLabel!,
                             icon: Icons.trending_up,
                             selected: !_isLiquid,
                             onTap: () {
@@ -502,7 +767,7 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text('Cancelar'),
+                            child: Text(l10n.cancel!),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -521,7 +786,7 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text('Guardar'),
+                            child: Text(l10n.save!),
                           ),
                         ),
                       ],
@@ -537,18 +802,89 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
     );
   }
 
+  Widget _buildLanguageDropdown() {
+    return PopupMenuButton<String>(
+      icon: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white30
+                : Colors.black26,
+          ),
+        ),
+        child: Image.asset(
+          _getCurrentFlag(),
+          width: 24,
+          height: 16,
+          fit: BoxFit.cover,
+        ),
+      ),
+      onSelected: (String languageCode) {
+        widget.onLanguageChanged(languageCode);
+      },
+      itemBuilder: (BuildContext context) => [
+        PopupMenuItem<String>(
+          value: 'es',
+          child: Row(
+            children: [
+              Image.asset('assets/es.png', width: 24, height: 16),
+              const SizedBox(width: 12),
+              const Text('Español'),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'en',
+          child: Row(
+            children: [
+              Image.asset('assets/uk.png', width: 24, height: 16),
+              const SizedBox(width: 12),
+              const Text('English'),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'fr',
+          child: Row(
+            children: [
+              Image.asset('assets/sw.png', width: 24, height: 16),
+              const SizedBox(width: 12),
+              const Text('Français'),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _getCurrentFlag() {
+    final locale = AppLocalizations.of(context)?.locale.languageCode ?? 'es';
+    switch (locale) {
+      case 'en':
+        return 'assets/uk.png';
+      case 'fr':
+        return 'assets/sw.png';
+      default:
+        return 'assets/es.png';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Mi Patrimonio'),
+        leading: _buildLanguageDropdown(),
+        title: Text(l10n.appTitle!),
         actions: [
           IconButton(
-            tooltip: _showDetails ? 'Ocultar detalles' : 'Mostrar detalles',
+            tooltip: _showDetails ? l10n.hideDetails : l10n.showDetails,
             icon: Icon(_showDetails ? Icons.visibility : Icons.visibility_off),
             onPressed: () {
               setState(() {
@@ -588,7 +924,7 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'PATRIMONIO TOTAL',
+                            l10n.totalAssets!,
                             style: theme.textTheme.bodySmall?.copyWith(
                               letterSpacing: 1.2,
                               fontWeight: FontWeight.w600,
@@ -611,7 +947,7 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
                           children: [
                             Expanded(
                               child: _SummaryItem(
-                                label: 'Líquido',
+                                label: l10n.liquid!,
                                 amountStr: _liquidAmountStr,
                                 icon: Icons.water_drop,
                                 color: Colors.blue,
@@ -620,7 +956,7 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
                             const SizedBox(width: 16),
                             Expanded(
                               child: _SummaryItem(
-                                label: 'Activos',
+                                label: l10n.assets!,
                                 amountStr: _assetAmountStr,
                                 icon: Icons.trending_up,
                                 color: Colors.amber,
@@ -638,9 +974,9 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Mis Activos', style: theme.textTheme.titleLarge),
+                    Text(l10n.myAssets!, style: theme.textTheme.titleLarge),
                     Text(
-                      '${_assets.length} ${_assets.length == 1 ? 'item' : 'items'}',
+                      '${_assets.length} ${_assets.length == 1 ? l10n.item : l10n.items}',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: isDark ? Colors.white54 : Colors.black45,
                       ),
@@ -663,14 +999,14 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'No hay activos',
+                              l10n.noAssets!,
                               style: theme.textTheme.titleMedium?.copyWith(
                                 color: isDark ? Colors.white54 : Colors.black45,
                               ),
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Presiona el botón + para añadir',
+                              l10n.addPrompt!,
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: isDark ? Colors.white38 : Colors.black38,
                               ),
@@ -740,7 +1076,9 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          asset.isLiquid ? 'Líquido' : 'Activo',
+                                          asset.isLiquid
+                                              ? l10n.liquid!
+                                              : l10n.assets!,
                                           style: theme.textTheme.bodySmall
                                               ?.copyWith(
                                                 color: isDark
@@ -752,7 +1090,7 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
                                     ),
                                   ),
                                   Text(
-                                    '€${moneyFormat.format(asset.amount)}',
+                                    '$_currencySymbol${_moneyFormat?.format(asset.amount) ?? asset.amount.toStringAsFixed(2)}',
                                     style: theme.textTheme.titleLarge?.copyWith(
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -771,7 +1109,7 @@ class _AssetManagerPageState extends State<AssetManagerPage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddAssetDialog,
         icon: const Icon(Icons.add),
-        label: const Text('Añadir'),
+        label: Text(l10n.add!),
         backgroundColor: isDark ? Colors.white : Colors.black,
         foregroundColor: isDark ? Colors.black : Colors.white,
         elevation: 4,
@@ -894,4 +1232,8 @@ class _TypeChip extends StatelessWidget {
       ),
     );
   }
+}
+
+void main() {
+  runApp(const MyApp());
 }

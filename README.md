@@ -1,5 +1,4 @@
 # Save — Personal Asset Manager
-# Save — Personal Asset Manager
 
 Simple Flutter app to manage personal assets. You can add, list, and remove assets, mark them as liquid or non-liquid, and view preformatted totals.
 

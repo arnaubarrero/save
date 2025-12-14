@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:ui' as ui;
+import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:intl/intl_standalone.dart';
@@ -408,7 +409,143 @@ class _MyAppState extends State<MyApp> {
       ],
       home: _locale == null
           ? const Center(child: CircularProgressIndicator())
-          : AssetManagerPage(onLanguageChanged: _changeLanguage),
+          : PinLockPage(onUnlocked: () => AssetManagerPage(onLanguageChanged: _changeLanguage)),
+    );
+  }
+}
+
+class PinLockPage extends StatefulWidget {
+  final Widget Function() onUnlocked;
+
+  const PinLockPage({super.key, required this.onUnlocked});
+
+  @override
+  State<PinLockPage> createState() => _PinLockPageState();
+}
+
+class _PinLockPageState extends State<PinLockPage> {
+  final TextEditingController _pinController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+  static const String _requiredPin = '7951';
+
+  @override
+  void initState() {
+    super.initState();
+    // Autofocus the PIN field shortly after build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).requestFocus(_focusNode);
+    });
+  }
+
+  @override
+  void dispose() {
+    _pinController.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _tryUnlock() {
+    if (_pinController.text.trim() == _requiredPin) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => widget.onUnlocked()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('PIN incorrecto')),
+      );
+      _pinController.clear();
+      FocusScope.of(context).requestFocus(_focusNode);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? [const Color(0xFF0A0A0A), const Color(0xFF1A1A1A)]
+                : [const Color(0xFFF5F5F5), const Color(0xFFE8E8E8)],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 28.0),
+              child: GlassmorphicCard(
+                padding: const EdgeInsets.all(24),
+                blurSigma: 6.0,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Introduce tu PIN',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _pinController,
+                      focusNode: _focusNode,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      obscureText: true,
+                      obscuringCharacter: '•',
+                      maxLength: 4,
+                      enableSuggestions: false,
+                      autocorrect: false,
+                      decoration: const InputDecoration(
+                        hintText: '••••',
+                        counterText: '',
+                        prefixIcon: Icon(Icons.lock_outline),
+                      ),
+                      textAlign: TextAlign.center,
+                      onSubmitted: (_) => _tryUnlock(),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => _pinController.clear(),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text('Borrar'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _tryUnlock,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text('Entrar'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

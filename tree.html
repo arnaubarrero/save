@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Árbol Genealógico</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+        }
+        
+        #tree-container {
+            width: 100%;
+            height: 600px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .node circle {
+            fill: #fff;
+            stroke: #4a90e2;
+            stroke-width: 3px;
+            cursor: pointer;
+        }
+        
+        .node circle:hover {
+            fill: #e3f2fd;
+        }
+        
+        .node text {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .link {
+            fill: none;
+            stroke: #ccc;
+            stroke-width: 2px;
+        }
+        
+        .controls {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        button {
+            padding: 8px 16px;
+            margin-right: 10px;
+            background: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background: #357abd;
+        }
+        
+        .info {
+            margin-top: 15px;
+            padding: 15px;
+            background: #fff3cd;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <h1>Árbol Genealógico Interactivo</h1>
+    
+    <div class="controls">
+        <button onclick="expandAll()">Expandir Todo</button>
+        <button onclick="collapseAll()">Colapsar Todo</button>
+        <button onclick="resetZoom()">Resetear Vista</button>
+    </div>
+    
+    <div id="tree-container"></div>
+    
+    <div class="info">
+        <strong>Instrucciones:</strong> Haz clic en los nodos para expandir/colapsar ramas. Usa la rueda del mouse para zoom y arrastra para mover el árbol.
+    </div>
+
+    <script>
+        // Datos del árbol genealógico - Tu familia
+        const familyData = {
+            name: "Abuelos",
+            birth: "",
+            children: [
+                {
+                    name: "Antonio y Valentina",
+                    birth: "",
+                    children: [
+                        {
+                            name: "Alfonso",
+                            birth: "",
+                            children: [
+                                { name: "Arnau", birth: "" },
+                                { name: "Roger", birth: "" }
+                            ]
+                        },
+                        { name: "Maricarmen", birth: "" },
+                        { name: "Isidoro", birth: "" }
+                    ]
+                },
+                {
+                    name: "X y Carme",
+                    birth: "",
+                    children: [
+                        {
+                            name: "Lourdes",
+                            birth: "",
+                            children: [
+                                { name: "Arnau", birth: "" },
+                                { name: "Roger", birth: "" }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // Configuración del SVG
+        const container = d3.select("#tree-container");
+        const width = container.node().getBoundingClientRect().width;
+        const height = container.node().getBoundingClientRect().height;
+        
+        const svg = container.append("svg")
+            .attr("width", width)
+            .attr("height", height);
+        
+        const g = svg.append("g")
+            .attr("transform", `translate(${width / 2},50)`);
+
+        // Configuración del zoom
+        const zoom = d3.zoom()
+            .scaleExtent([0.1, 3])
+            .on("zoom", (event) => {
+                g.attr("transform", event.transform);
+            });
+        
+        svg.call(zoom);
+
+        // Crear el layout del árbol
+        const tree = d3.tree().size([width - 200, height - 200]);
+        
+        // Convertir datos a jerarquía
+        const root = d3.hierarchy(familyData);
+        root.x0 = 0;
+        root.y0 = 0;
+
+        // Colapsar todos los nodos después del primer nivel
+        if (root.children) {
+            root.children.forEach(collapse);
+        }
+
+        update(root);
+
+        function collapse(d) {
+            if (d.children) {
+                d._children = d.children;
+                d._children.forEach(collapse);
+                d.children = null;
+            }
+        }
+
+        function expand(d) {
+            if (d._children) {
+                d.children = d._children;
+                d.children.forEach(expand);
+                d._children = null;
+            }
+        }
+
+        function update(source) {
+            const treeData = tree(root);
+            const nodes = treeData.descendants();
+            const links = treeData.links();
+
+            // Normalizar la profundidad
+            nodes.forEach(d => { d.y = d.depth * 150 });
+
+            // Nodos
+            const node = g.selectAll(".node")
+                .data(nodes, d => d.id || (d.id = Math.random()));
+
+            const nodeEnter = node.enter().append("g")
+                .attr("class", "node")
+                .attr("transform", d => `translate(${source.x0},${source.y0})`)
+                .on("click", click);
+
+            nodeEnter.append("circle")
+                .attr("r", 8);
+
+            nodeEnter.append("text")
+                .attr("dy", -15)
+                .attr("text-anchor", "middle")
+                .text(d => d.data.name)
+                .style("fill-opacity", 0);
+
+            nodeEnter.append("text")
+                .attr("dy", 25)
+                .attr("text-anchor", "middle")
+                .style("font-size", "11px")
+                .style("fill", "#666")
+                .text(d => d.data.birth)
+                .style("fill-opacity", 0);
+
+            const nodeUpdate = nodeEnter.merge(node);
+
+            nodeUpdate.transition()
+                .duration(500)
+                .attr("transform", d => `translate(${d.x},${d.y})`);
+
+            nodeUpdate.select("circle")
+                .attr("r", 8)
+                .style("fill", d => d._children ? "#4a90e2" : "#fff");
+
+            nodeUpdate.selectAll("text")
+                .style("fill-opacity", 1);
+
+            const nodeExit = node.exit().transition()
+                .duration(500)
+                .attr("transform", d => `translate(${source.x},${source.y})`)
+                .remove();
+
+            nodeExit.select("circle").attr("r", 0);
+            nodeExit.selectAll("text").style("fill-opacity", 0);
+
+            // Links
+            const link = g.selectAll(".link")
+                .data(links, d => d.target.id);
+
+            const linkEnter = link.enter().insert("path", "g")
+                .attr("class", "link")
+                .attr("d", d => {
+                    const o = {x: source.x0, y: source.y0};
+                    return diagonal(o, o);
+                });
+
+            const linkUpdate = linkEnter.merge(link);
+
+            linkUpdate.transition()
+                .duration(500)
+                .attr("d", d => diagonal(d.source, d.target));
+
+            link.exit().transition()
+                .duration(500)
+                .attr("d", d => {
+                    const o = {x: source.x, y: source.y};
+                    return diagonal(o, o);
+                })
+                .remove();
+
+            nodes.forEach(d => {
+                d.x0 = d.x;
+                d.y0 = d.y;
+            });
+        }
+
+        function diagonal(s, d) {
+            return `M ${s.x} ${s.y}
+                    C ${s.x} ${(s.y + d.y) / 2},
+                      ${d.x} ${(s.y + d.y) / 2},
+                      ${d.x} ${d.y}`;
+        }
+
+        function click(event, d) {
+            if (d.children) {
+                d._children = d.children;
+                d.children = null;
+            } else {
+                d.children = d._children;
+                d._children = null;
+            }
+            update(d);
+        }
+
+        function expandAll() {
+            expand(root);
+            update(root);
+        }
+
+        function collapseAll() {
+            if (root.children) {
+                root.children.forEach(collapse);
+            }
+            update(root);
+        }
+
+        function resetZoom() {
+            svg.transition()
+                .duration(750)
+                .call(zoom.transform, d3.zoomIdentity.translate(width / 2, 50));
+        }
+    </script>
+</body>
+</html>
